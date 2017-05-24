@@ -4,10 +4,9 @@ from io import StringIO
 from lxml import etree
 
 
-class PowerBallDraw(object):
+class PowerBallPHDraw(object):
     def __init__(self, response):
         self._balls = None
-        self._sups = None
         self._dividends = None
         self._tree = etree.parse(StringIO(response.content.decode('utf-8')), etree.HTMLParser())
 
@@ -18,14 +17,6 @@ class PowerBallDraw(object):
             self._balls = [int(x.text) for x in balls_element]
 
         return self._balls
-
-    @property
-    def sups(self):
-        if self._sups is None:
-            sups_element = self._tree.xpath('//div[@class="drawn-number Supp Powerball"]')
-            self._sups = [int(x.text) for x in sups_element]
-
-        return self._sups
 
     @property
     def dividends(self):
@@ -61,17 +52,12 @@ class PowerBallDraw(object):
 
     def check_winner(self, picked_item):
         winning_balls = set(picked_item[0]).intersection(self.balls)
-        winning_powerball = picked_item[1][0] == self.sups[0]
 
         for dividend in self.dividends:
             if len(winning_balls) == dividend['num_balls']:
-                if not dividend['needs_powerball'] or winning_powerball:
-                    amount_won = dividend['value']
-                    print(dividend['name'], winning_balls, end='')
+                amount_won = dividend['value']
+                print(dividend['name'], winning_balls, end='')
 
-                    if winning_powerball:
-                        print(' (%s)' % self.sups[0], end='')
+                print(' ${0:.2f}'.format(amount_won))
 
-                    print(' ${0:.2f}'.format(amount_won))
-
-                    break
+                break
