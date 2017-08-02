@@ -3,14 +3,10 @@ from io import StringIO
 
 from lxml import etree
 
+from .common import BaseDraw
 
-class PowerBallDraw(object):
-    def __init__(self, response):
-        self._balls = None
-        self._sups = None
-        self._dividends = None
-        self._tree = etree.parse(StringIO(response.content.decode('utf-8')), etree.HTMLParser())
 
+class PowerBallDraw(BaseDraw):
     @property
     def balls(self):
         if self._balls is None:
@@ -67,11 +63,10 @@ class PowerBallDraw(object):
             if len(winning_balls) == dividend['num_balls']:
                 if not dividend['needs_powerball'] or winning_powerball:
                     amount_won = dividend['value']
-                    print(dividend['name'], winning_balls, end='')
+                    print(dividend['name'], sorted(winning_balls), end='')
 
                     if winning_powerball:
                         print(' (%s)' % self.sups[0], end='')
 
                     print(' ${0:.2f}'.format(amount_won))
-
-                    break
+                    return amount_won

@@ -3,15 +3,10 @@ from io import StringIO
 
 from lxml import etree
 
+from .common import BaseDraw
 
-class OzLottoDraw(object):
 
-    def __init__(self, response):
-        self._balls = None
-        self._sups = None
-        self._dividends = None
-        self._tree = etree.parse(StringIO(response.content.decode('utf-8')), etree.HTMLParser())
-
+class OzLottoDraw(BaseDraw):
     @property
     def balls(self):
         if self._balls is None:
@@ -68,10 +63,10 @@ class OzLottoDraw(object):
             if len(winning_balls) == dividend['num_balls']:
                 if not dividend['needs_sups'] or len(winning_sups) > 0:
                     amount_won = dividend['value']
-                    print(dividend['name'], winning_balls, end='')
+                    print(dividend['name'], sorted(winning_balls), end='')
 
                     if len(winning_sups) > 0:
-                        print(' (%s)' % self.sups[0], end='')
+                        print(' (%s)' % sorted(self.sups), end='')
 
                     print(' ${0:.2f}'.format(amount_won))
-                    break
+                    return amount_won
