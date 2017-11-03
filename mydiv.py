@@ -20,7 +20,7 @@ def main(argv=sys.argv[1:]):
     # Get results
     config = configs[args.game]
 
-    processor = config.klass(requests.get(config.uri))
+    processor = config.klass(requests.post(config.uri, json=config.data), config)
 
     print('Checking "%s" results: %s' % (processor.name, sorted(processor.balls)), end='')
 

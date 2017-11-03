@@ -5,11 +5,14 @@ from lxml import etree
 
 class BaseDraw(object):
 
-    def __init__(self, response):
+    def __init__(self, response, config):
+
+        assert response.status_code == 200, response.status_code
         self._balls = None
         self._sups = None
         self._dividends = None
-        self._tree = etree.parse(StringIO(response.content.decode('utf-8')), etree.HTMLParser())
+        self._data = response.json()
+        self._config = config
 
     @property
     def name(self):

@@ -10,16 +10,14 @@ class OzLottoDraw(BaseDraw):
     @property
     def balls(self):
         if self._balls is None:
-            balls_element = self._tree.xpath('//div[@class="drawn-number OzLotto"]')
-            self._balls = [int(x.text) for x in balls_element]
+            self._balls = self._data['DrawResults'][0]['PrimaryNumbers']
 
         return self._balls
 
     @property
     def sups(self):
         if self._sups is None:
-            sups_element = self._tree.xpath('//div[@class="drawn-number Supp OzLotto"]')
-            self._sups = [int(x.text) for x in sups_element]
+            self._sups = self._data['DrawResults'][0]['SecondaryNumbers']
 
         return self._sups
 
@@ -28,28 +26,12 @@ class OzLottoDraw(BaseDraw):
         if self._dividends is None:
             self._dividends = []
 
-            dividends_tablerows_elements = self._tree.xpath(
-                '//div[@class="lotto-draw-result no-cufon clearfix ozlotto-result vic"]//table'
-                '[@class="dividends-table"]//tbody/tr')
-
-            for row_element in dividends_tablerows_elements:
-                columns = row_element.xpath('.//td')
-
-                try:
-                    value = float(columns[0].text[1:].replace(',', ''))
-                except ValueError:  # Probably no division amount
-                    value = 0
-
-                try:
-                    winners = int(re.match(r'^(\d+).*$', columns[2].text).group(1))
-                except AttributeError:
-                    winners = 0
-
-                dividend = {'name': row_element.xpath('.//th')[0].text,
-                            'value': value,
-                            'winners': winners,
-                            'num_balls': int(columns[3].text),
-                            'needs_sups': columns[5].text is not None}
+            for dividend_info in self._data['DrawResults'][0]['Dividends']:
+                dividend = {'name': 'Division %s' % dividend_info['Division'],
+                            'value': dividend_info['BlocDividend'],
+                            'winners': dividend_info['BlocNumberOfWinners'],
+                            'num_balls': self._config.winning_combs[dividend_info['Division']]['num_balls'],
+                            'needs_sups': self._config.winning_combs[dividend_info['Division']]['needs_sups']}
 
                 self._dividends.append(dividend)
 
@@ -66,7 +48,7 @@ class OzLottoDraw(BaseDraw):
                     print(dividend['name'], sorted(winning_balls), end='')
 
                     if len(winning_sups) > 0:
-                        print(' (%s)' % sorted(self.sups), end='')
+                        print(' %s' % sorted(self.sups), end='')
 
                     print(' ${0:.2f}'.format(amount_won))
                     return amount_won
